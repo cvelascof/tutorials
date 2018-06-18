@@ -1,54 +1,84 @@
-#!/usr/bin/env python
+"""Tutorial 1: Motion field estimation and extrapolation forecast
 
-# Import basic python modules
+The tutorial guides you into the basic notions and techniques for extrapolation 
+nowcasting. 
+
+There are two possible ways to run the tutorials:
+    1. You make the python script executable ("chmod + x tutorial1_motion.py") 
+        and run it (./tutorial1_motion.py).
+    2. You open a python session and copy the script step by step so that you 
+        have more time to understand how the code works.
+"""
+
 from __future__ import division
 from __future__ import print_function
 
+import sys
 import datetime as datetime
 import numpy as np
-
 import matplotlib.pylab as plt
 
-# Add root STEPS directory to system PATH
-import sys
-sys.path.append('../')
+sys.path.append('../') # add root pySTEPS dir to system path
 
-# Import STEPS modules
 from iotools import archive, importers, utils
 from motion import optflow, advection
 from datatools.conversion import mmhr2dBR, dBR2mmhr, dBZ2mmhr
 from stepsnwc.nowcast_generators import simple_advection
 from visualization.precipfields import plot_precip_field
-from visualization.motionfields import plot_motion_field_quiver
 
-####################
-## Input parameters
-root_path_data  = "/users/lforesti/steps-data"
-path_figs  = "/users/lforesti/steps-out"
+# List of case studies that can be used in this tutorial
 
-n_prev_images = 5 # Number of previous images to load (to estimate the motion field)
-n_next_images = 6 # Number of futures images to forecast. This also loads the corresponding observed radar fields for verification.
-time_step_min = 5 # Time step between two radar images
+#+-------+--------------+-------------+----------------------------+
+#| event |  start_time  | data_source | description                |
+#+=======+==============+=============+============================+
+#|   1   | 201701121200 |     mch     | orographic precipitation   |
+#+-------+--------------+-------------+----------------------------+
+#|   2   | 201701121200 |     mch     | orographic precipitation   |
+#+-------+--------------+-------------+----------------------------+
 
-start_time = "201701121200" # Start time fo the nowcast
+# Set parameters for this tutorial
 
-####################
-###### READ-IN DATA
-# Filename pattern and format
-fn_pattern = "%Y%m%d%H%M_fmi.radar.composite.lowest_FIN_SUOMI1"
-fn_ext     = "pgm.gz"
+## input data (copy/paste values from table above)
+start_time     = "201701121200"
+data_source    = "mch"
 
-# Read-in previous rainfall fields
+## data paths
+path_inputs  = "/scratch/ned/tmp/tutorial_data/in"
+path_outputs = "/scratch/ned/tmp/tutorial_data/out"
+
+if path_inputs is None or path_outputs is None:
+    raise ValueError("Please define paths to data folders")
+
+## forecast parameters
+n_lead_times = 12
+ 
+# Read-in the data
+
+## data specifications
+if data_source=="fmi":
+    fn_pattern = "%Y%m%d%H%M_fmi.radar.composite.lowest_FIN_SUOMI1"
+    fn_ext     = "pgm.gz"
+    time_step_min = 5 # timestep between two radar images
+
+if data_source=="mch":
+    fn_pattern = "AQC%y%j%H%M?_00005.801"
+    fn_ext     = "gif"
+    time_step_min = 5
+
+## read-in previous rainfall fields
 startdate  = datetime.datetime.strptime(start_time, "%Y%m%d%H%M")
-input_files_prev = archive.find_by_date(startdate, root_path_data, "", fn_pattern, fn_ext, time_step_min, n_prev_images)
-dBZ, geodata, metadata = utils.read_timeseries(input_files_prev, importers.read_pgm, gzipped=True)
+input_files = archive.find_by_date(startdate, path_inputs, "", fn_pattern, fn_ext, time_step_min, 3)
+if all(fpath is None for fpath in input_files[0]):
+    raise ValueError("Input data not found")
 
-R = dBZ2mmhr(dBZ, R_threshold=0.1)
-print(input_files_prev[1])
+R, geodata, metadata = utils.read_timeseries(input_files_prev, importers.read_pgm, gzipped=True)
+if data_source=="fmi":
+    R = dBZ2mmhr(dBZ, R_threshold=0.1)
+    print(input_files_prev[1])
 
 # Read-in future rainfall fields (for verification)
 enddate = startdate + datetime.timedelta(minutes=time_step_min + time_step_min*n_next_images)
-input_files_next = archive.find_by_date(enddate, root_path_data, "", fn_pattern, fn_ext, time_step_min, n_next_images-1)
+input_files_next = archive.find_by_date(enddate, path_inputs, "", fn_pattern, fn_ext, time_step_min, n_next_images-1)
 dBZ_obs,_,_ = utils.read_timeseries(input_files_next, importers.read_pgm, gzipped=True)
 
 R_obs = dBZ2mmhr(dBZ_obs, R_threshold=0.1)
