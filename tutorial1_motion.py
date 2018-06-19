@@ -41,8 +41,8 @@ startdate_str   = "201701311000"
 data_source     = "mch"
 
 ## data paths
-path_inputs     = "/scratch/ned/tmp/tutorial_data/in"
-path_outputs    = "/scratch/ned/tmp/tutorial_data/out"
+path_inputs     = ""
+path_outputs    = ""
 
 ## methods
 oflow_method    = "lucaskanade"
@@ -54,9 +54,19 @@ R_threshold     = 0.1 # [mmhr]
 
 ## optical flow parameters
 oflow_kwargs    = {
-                # to control the smoothness of the motion field
+                # to control the number of tracking objects
+                "quality_level_ST"  : 0.05,
+                "min_distance_ST"   : 5,
+                "block_size_ST"     : 15,
+                # to control the tracking of those objects
+                "winsize_LK"        : (50, 50),
+                "nr_levels_LK"      : 10,
+                # to control the removal of outliers
+                "max_speed"         : 10,
+                "nr_IQR_outlier"    : 3,
+                # to control the smoothness of the interpolation
                 "decl_grid"         : 10,
-                "min_nr_samples"    : 1,
+                "min_nr_samples"    : 2,
                 "kernel_bandwidth"  : None
                 }
 
@@ -117,7 +127,6 @@ dBR[~np.isfinite(dBR)] = dBRmin
 
 ## visualize the input radar fields
 doanimation     = False
-savefig         = False
 loop = 0
 nloops = 2
 while loop < nloops:
@@ -130,12 +139,6 @@ while loop < nloops:
                               colorbar=True)
                     
             plt.pause(.5)
-        
-        if loop==0 and savefig:
-            time_str = input_files[1][i].strftime('%Y%m%d%H%M')
-            figName = path_outputs + '/radar_obs_' + time_str + '.png'
-            plt.savefig(figName)
-            print('Saved: ', figName)
     
     if doanimation:
         plt.pause(1)
@@ -146,7 +149,7 @@ plt.close()
 # Is the radar animation OK? Do the data look correct and in the right order?
 # If yes, then delete the command below to continue this tutorial.
 
-# sys.exit()
+sys.exit()
 
 # Compute motion field
 print('Computing motion vectors...')
@@ -156,7 +159,6 @@ UV = oflow_method(dBR, **oflow_kwargs)
 
 ## plot the motion field
 doanimation     = False
-savefig         = False
 loop = 0
 nloops = 3
 while loop < nloops:
@@ -172,24 +174,19 @@ while loop < nloops:
                 plot_motion_field_streamplot(UV, None)        
             plt.pause(.5)
         
-        if loop==0 and savefig:
-            time_str = input_files[1][i].strftime('%Y%m%d%H%M')
-            figName = path_outputs + '/radar_motionfield_' + time_str + '.png'
-            plt.savefig(figName)
-            print('Saved: ', figName)
-    
     if doanimation:
         plt.pause(1)
     loop += 1
 plt.close()
 
 # YOUR TURN:
-# Try to modify some of the optical flow parameters to see what changes in the
-# estimation of the motion field. 
-# Do the precipitation patterns move along the estimated motion field?
-# If yes, then delete the command below to continue this tutorial.
+# Try to modify some of the optical flow parameters in oflow_kwargs to see what 
+# changes in the estimation of the motion field. Which are the most sensitive 
+# parameters? Check the quality of your motion field: do the precipitation patterns 
+# move along the estimated motion field?
+# If yes, then comment out the command below to continue this tutorial.
 
-# sys.exit()
+sys.exit()
 
 # Perform the advection of the radar field
 print('Computing extrapolation...')
@@ -275,3 +272,9 @@ print("Figure object saved: %s.dat" % filename)
 # remove the pickle object to plot a new figure
 
 plt.show()
+
+# YOUR TURN:
+# Now you can run the whole code multiple times with different combinations of 
+# parameters and input files and you will be able to compare their skills in the
+# verification plot. To start with a new clean plot, delete the tutorial1_fig_verif.dat
+# file in your output folder.
