@@ -1,6 +1,6 @@
 """Tutorial 2a: Cascade decomposition and generation of stochastic noise
 
-This tutorial demonstrates the cascade decomposition.
+This tutorial demonstrates the stochastic noise generators.
 """
 
 import datetime
@@ -13,9 +13,8 @@ sys.path.append("../") # add root pySTEPS dir to system path
 
 from datatools import conversion, dimension
 from iotools import archive, importers
-from stepsnwc.cascade.bandpass_filters import filter_gaussian
-from stepsnwc.cascade.decomposition import decomposition_fft
-from visualization.precipfields  import plot_precip_field
+from perturbation import precip_generators
+from visualization.precipfields import plot_precip_field
 
 # List of case studies that can be used in this tutorial
 
@@ -38,10 +37,9 @@ startdate_str = "201609281500"
 data_source   = "fmi"
 
 ## data paths
-path_inputs     = ""
-path_outputs    = ""
+path_inputs  = ""
+path_outputs = ""
 
-num_cascade_levels = 6
 R_threshold = 0.1 # [mmhr]
 
 ## data specifications
@@ -76,39 +74,26 @@ if data_units is "dBZ":
 fig = plt.figure()
 plot_precip_field(R, units="mmhr", title="Input field")
 
-# convert precipitation intensity (mm/hr) to dBR for the cascade decomposition
+# convert precipitation intensity (mm/hr) to dBR
 dBR, dBRmin = conversion.mmhr2dBR(R, R_threshold)
 dBR[~np.isfinite(R)] = dBRmin
 dBR[dBR < dBRmin] = dBRmin
 
-# plot the Fourier transform of the input field
-F = abs(np.fft.fftshift(np.fft.fft2(dBR)))
-fig = plt.figure()
-L = F.shape[0]
-im = plt.imshow(np.log(F**2), vmin=4, vmax=24, cmap=cm.jet, 
-                extent=(-L/2, L/2, -L/2, L/2))
-cb = fig.colorbar(im)
-plt.xlabel("Wavenumber $k_x$")
-plt.ylabel("Wavenumber $k_y$")
-plt.title("Log-power spectrum of dBR")
+# initialize the filter for generating the noise
+# the Fourier spectrum of the input field in dBR is used as a filter (i.e. the 
+# "nonparametric" method)
+# this produces a noise field having spatial correlation structure similar to 
+# the input field
+F = precip_generators.initialize_nonparam_2d_fft_filter(dBR)
 
-# construct the bandpass filter
-filter = filter_gaussian(dBR.shape[0], num_cascade_levels)
+# plot four realizations of the stochastic noise
+for i in xrange(4):
+    N = precip_generators.generate_noise_2d_fft_filter(F)
 
-# compute the cascade decomposition
-decomp = decomposition_fft(dBR, filter)
-
-# plot the normalized cascade levels (mean zero and standard deviation one)
-mu,sigma = decomp["means"],decomp["stds"]
-for k in xrange(num_cascade_levels):
-    dBR_k = decomp["cascade_levels"][k, :, :]
-    dBR_k = (dBR_k - mu[k]) / sigma[k]
-    fig = plt.figure()
-    im = plt.imshow(dBR_k, cmap=cm.jet, vmin=-6, vmax=6)
-    cb = fig.colorbar(im)
-    cb.set_label("Rainfall rate (dBR)")
+    plt.figure()
+    plt.imshow(N, cmap=cm.jet)
     plt.xticks([])
     plt.yticks([])
-    plt.title("Normalized cascade level %d" % (k+1))
+    plt.title("Noise field %d" % (i+1))
 
 plt.show()
