@@ -4,7 +4,7 @@ This tutorial demonstrates the cascade decomposition.
 """
 
 import datetime
-from matplotlib import cm
+from matplotlib import cm, ticker
 import matplotlib.pylab as plt
 import numpy as np
 import sys
@@ -38,11 +38,12 @@ startdate_str = "201609281500"
 data_source   = "fmi"
 
 ## data paths
-path_inputs     = ""
+path_inputs     = "../data/20160928"
 path_outputs    = ""
 
 num_cascade_levels = 6
 R_threshold = 0.1 # [mmhr]
+gridres = 1.0
 
 ## data specifications
 if data_source == "fmi":
@@ -93,7 +94,27 @@ plt.ylabel("Wavenumber $k_y$")
 plt.title("Log-power spectrum of dBR")
 
 # construct the bandpass filter
-filter = filter_gaussian(dBR.shape[0], num_cascade_levels)
+filter = filter_gaussian(dBR.shape[0], num_cascade_levels, gauss_scale=0.15, 
+                         gauss_scale_0=0.2)
+
+# plot the bandpass filter weights
+fig = plt.figure()
+ax = fig.gca()
+
+for k in xrange(num_cascade_levels):
+    ax.semilogx(np.linspace(0, L/2, len(filter["weights_1d"][k, :])), 
+                filter["weights_1d"][k, :], "k-", 
+                basex=pow(0.5*L/3, 1.0/(num_cascade_levels-2)))
+
+ax.set_xlim(1, L/2)
+ax.set_ylim(0, 1)
+ax.get_xaxis().set_major_formatter(ticker.ScalarFormatter())
+xt = np.hstack([[1.0], filter["central_freqs"][1:]])
+ax.set_xticks(xt)
+ax.set_xticklabels(["%.2f" % cf for cf in filter["central_freqs"]])
+ax.set_xlabel("Radial wavenumber $|\mathbf{k}|$")
+ax.set_ylabel("Normalized weight")
+ax.set_title("Bandpass filter weights")
 
 # compute the cascade decomposition
 decomp = decomposition_fft(dBR, filter)
