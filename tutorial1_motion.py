@@ -1,3 +1,5 @@
+#!/bin/env python
+
 """Tutorial 1: Motion field estimation and extrapolation forecast
 
 The tutorial guides you into the basic notions and techniques for extrapolation 
@@ -26,13 +28,17 @@ from verification.detcatscores   import scores_det_cat_fcst
 
 # List of case studies that can be used in this tutorial
 
-#+-------+--------------+-------------+----------------------------+
-#| event |  start_time  | data_source | description                |
-#+=======+==============+=============+============================+
-#|  01   | 201701311000 |     mch     | orographic precipitation   |
-#+-------+--------------+-------------+----------------------------+
-#|  02   | 201505151600 |     mch     | non-stationary field       |
-#+-------+--------------+-------------+----------------------------+
+#+-------+--------------+-------------+----------------------------------------+
+#| event |  start_time  | data_source | description                            |
+#+=======+==============+=============+========================================+
+#|  01   | 201701311000 |     mch     | orographic precipitation               |
+#+-------+--------------+-------------+----------------------------------------+
+#|  02   | 201505151600 |     mch     | non-stationary field, apparent rotation|
+#+-------+--------------+------------------------------------------------------+
+#|  03   | 201609281500 |     fmi     | stratiform rain band                   |
+#+-------+--------------+-------------+----------------------------------------+
+#|  04   | 201705091100 |     fmi     | widespread convective activity         |
+#+-------+--------------+-------------+----------------------------------------+
 
 # Set parameters for this tutorial
 
@@ -41,8 +47,9 @@ startdate_str   = "201701311000"
 data_source     = "mch"
 
 ## data paths
-path_inputs     = ""
-path_outputs    = ""
+path_base       = "" # Please complete according to your path
+path_inputs     = path_base + "/steps-data"
+path_outputs    = path_base + "/steps-out"
 
 ## methods
 oflow_method    = "lucaskanade"
@@ -71,7 +78,7 @@ oflow_kwargs    = {
                 }
 
 ## visualization parameters
-colorscale      = 'STEPS-BE'
+colorscale      = 'MeteoSwiss' # MeteoSwiss or STEPS-BE
 motion_plot     = 'streamplot' # streamplot or quiver
 
 ## verification parameters
@@ -84,6 +91,7 @@ print('Read the data...')
 ## data specifications
 if data_source == "fmi":
     fn_pattern      = "%Y%m%d%H%M_fmi.radar.composite.lowest_FIN_SUOMI1"
+    path_fmt        = "fmi/%Y%m%d"
     fn_ext          = "pgm.gz"
     time_step_min   = 5 # timestep between two radar images
     data_units      = 'dBZ'
@@ -92,6 +100,7 @@ if data_source == "fmi":
 
 if data_source == "mch":
     fn_pattern      = "AQC%y%j%H%M?_00005.801"
+    path_fmt        = "mch/%Y%m%d"
     fn_ext          = "gif"
     time_step_min   = 5
     data_units      = 'mmhr'
@@ -101,10 +110,9 @@ if data_source == "mch":
 startdate  = datetime.datetime.strptime(startdate_str, "%Y%m%d%H%M")
 
 ## find radar field filenames
-input_files = archive.find_by_date(startdate, path_inputs, "", fn_pattern, fn_ext, 
-                                   time_step_min, 2)
+input_files = archive.find_by_date(startdate, path_inputs, path_fmt, fn_pattern, fn_ext, time_step_min, 2)
 if all(fpath is None for fpath in input_files[0]):
-    raise ValueError("Input data not found")
+    raise ValueError("Input data not found in", path_inputs)
 
 ## read radar field files
 R, _, _ = utils.read_timeseries(input_files, importer, **importer_kwargs)
@@ -119,31 +127,29 @@ if data_units is 'dBZ':
     R = conversion.dBZ2mmhr(R, R_threshold)
 
 ## make sure we work with a square domain
-R_ = dimension.square_domain(R, 'crop')
+R = dimension.square_domain(R, 'crop')
 
 ## convert linear rainrates to logarithimc dBR units
-dBR, dBRmin = conversion.mmhr2dBR(R_, R_threshold)
+dBR, dBRmin = conversion.mmhr2dBR(R, R_threshold)
 dBR[~np.isfinite(dBR)] = dBRmin
 
 ## visualize the input radar fields
-doanimation     = False
+doanimation = True
+nloops = 5 # how many times to loop
+
 loop = 0
-nloops = 2
 while loop < nloops:
-    
     for i in xrange(R.shape[0]):
         plt.clf()
         if doanimation:
-            plot_precip_field(R_[i,:,:], None, units='mmhr', colorscale=colorscale, 
-                              title=input_files[1][i].strftime('%Y-%m-%d %H:%M'), 
-                              colorbar=True)
-                    
+            plot_precip_field(R[i,:,:], None, units='mmhr', colorscale=colorscale, title=input_files[1][i].strftime('%Y-%m-%d %H:%M'), colorbar=True)
             plt.pause(.5)
-    
     if doanimation:
         plt.pause(1)
     loop += 1
-plt.close()
+
+if doanimation == True:
+    plt.close()
     
 # YOUR TURN:
 # Is the radar animation OK? Do the data look correct and in the right order?
@@ -154,20 +160,20 @@ sys.exit()
 # Compute motion field
 print('Computing motion vectors...')
 
-oflow_method = optflow.get_method(oflow_method)
+oflow_method = optflow.get_method(oflow_method) # This provides a callable function "oflow_method" for any type of optical flow function used.
 UV = oflow_method(dBR, **oflow_kwargs) 
 
 ## plot the motion field
-doanimation     = False
+doanimation = True
+nloops = 5
+
 loop = 0
-nloops = 3
 while loop < nloops:
     
     for i in xrange(R.shape[0]):
         plt.clf()
         if doanimation:
-            plot_precip_field(R_[i,:,:], None, units='mmhr', colorscale=colorscale, 
-                              title='Motion field', colorbar=True)
+            plot_precip_field(R[i,:,:], None, units='mmhr', colorscale=colorscale, title='Motion field', colorbar=True)
             if motion_plot=='quiver':
                 plot_motion_field_quiver(UV, None, 20)
             if motion_plot=='streamplot':    
@@ -177,7 +183,9 @@ while loop < nloops:
     if doanimation:
         plt.pause(1)
     loop += 1
-plt.close()
+
+if doanimation == True:
+    plt.close()
 
 # YOUR TURN:
 # Try to modify some of the optical flow parameters in oflow_kwargs to see what 
@@ -196,46 +204,58 @@ dBR_forecast = adv_method(dBR[-1,:,:], UV, n_lead_times)
 
 ## convert the forecasted dBR to mmhr
 R_forecast = conversion.dBR2mmhr(dBR_forecast, R_threshold)
+print('The forecast array has size [nleadtimes,nrows,ncols] =', R_forecast.shape)
 
 ## plot the nowcast...
-doanimation     = False
-savefig         = False
+doanimation     = True
+savefig         = True
+nloops = 2
+
 loop = 0
-nloops = 5
 while loop < nloops:
     
-    for i in xrange(R_.shape[0] + n_lead_times):
+    for i in xrange(R.shape[0] + n_lead_times):
         plt.clf()
         if doanimation:
-            if i < R_.shape[0]:
-                plot_precip_field(R_[i,:,:], None, units='mmhr', colorscale=colorscale, 
+            if i < R.shape[0]:
+                # Plot last observed rainfields
+                plot_precip_field(R[i,:,:], None, units='mmhr', colorscale=colorscale, 
                               title=input_files[1][i].strftime('%Y-%m-%d %H:%M'), 
                               colorbar=True)
-                
+                if savefig & (loop == 0):
+                    figname = "%s/%s_%s_simple_advection_%02d_obs.png" % (path_outputs, startdate_str, data_source, i)
+                    plt.savefig(figname)
+                    print(figname, 'saved.')
             else:
-                plot_precip_field(R_forecast[i - R_.shape[0],:,:], None, units='mmhr', 
+                # Plot nowcast
+                plot_precip_field(R_forecast[i - R.shape[0],:,:], None, units='mmhr', 
                                   title='%s +%02d min' % 
                                   (input_files[1][-1].strftime('%Y-%m-%d %H:%M'),
-                                  (1 + i - R_.shape[0])*time_step_min),
-                                  colorscale='STEPS-BE', colorbar=True)
+                                  (1 + i - R.shape[0])*time_step_min),
+                                  colorscale=colorscale, colorbar=True)
+                if savefig & (loop == 0):
+                    figname = "%s/%s_%s_simple_advection_%02d_nwc.png" % (path_outputs, startdate_str, data_source, i)
+                    plt.savefig(figname)
+                    print(figname, 'saved.')
             plt.pause(.5)
-        
     if doanimation:
         plt.pause(1)
     loop += 1
-plt.close()
+
+if doanimation == True:
+    plt.close()
 
 # Forecast verification
 
 ## find the verifying observations
-input_files = archive.find_by_date(startdate + datetime.timedelta(minutes=n_lead_times*time_step_min), 
-                                   path_inputs, "", fn_pattern, fn_ext, 
+input_files_verif = archive.find_by_date(startdate + datetime.timedelta(minutes=n_lead_times*time_step_min), 
+                                   path_inputs, path_fmt, fn_pattern, fn_ext, 
                                    time_step_min, n_lead_times - 1)
-if all(fpath is None for fpath in input_files[0]):
+if all(fpath is None for fpath in input_files_verif[0]):
     raise ValueError("Verification data not found")
 
 ## read observations
-Robs, _, _ = utils.read_timeseries(input_files, importer, **importer_kwargs)
+Robs, _, _ = utils.read_timeseries(input_files_verif, importer, **importer_kwargs)
 
 ## convert units
 if data_units is 'dBZ':
@@ -250,7 +270,7 @@ for i in xrange(n_lead_times):
     scores[i] = scores_det_cat_fcst(R_forecast[i,:,:], Robs_[i,:,:], verif_thr, 
                                    [skill_score])[0]
 
-## if already exists, load the figure object
+## if already exists, load the figure object to append the new verification results
 filename = "%s/%s" % (path_outputs, "tutorial1_fig_verif")
 if os.path.exists("%s.dat" % filename):
     ax = pickle.load(open("%s.dat" % filename, 'rb'))
