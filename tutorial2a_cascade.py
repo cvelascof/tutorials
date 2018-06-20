@@ -38,7 +38,7 @@ startdate_str = "201609281500"
 data_source   = "fmi"
 
 ## data paths
-path_inputs     = "../data/20160928"
+path_inputs     = ""
 path_outputs    = ""
 
 num_cascade_levels = 6
@@ -64,7 +64,7 @@ elif data_source == "mch":
 startdate = datetime.datetime.strptime(startdate_str, "%Y%m%d%H%M")
 
 fn = archive.find_by_date(startdate, path_inputs, "", fn_pattern, fn_ext, time_step_min)[0]
-R = importers.read_pgm(fn, gzipped=True)[0]
+R = importer(fn, **importer_kwargs)[0]
 
 ## make sure we work with a square domain
 R = dimension.square_domain(R, "crop")
