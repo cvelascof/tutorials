@@ -47,12 +47,8 @@ from verification.detcatscores   import scores_det_cat_fcst
 startdate_str = "201701311000"
 data_source   = "mch"
 
-## data paths (specify the relevant paths*)  
-path_inputs  = ""   # the path to the input files**
-path_outputs = ""   # the path where to save outputs
-# (*) do not include the backslash / at the end of the path
-# (**) this is the folder where you unzipped the archive.zip file that you have
-# downloaded (sources are available on https://pysteps.github.io/)
+## Read-in data paths
+from data_paths import path_inputs, path_outputs
 
 ## methods
 oflow_method    = "lucaskanade"
@@ -157,9 +153,9 @@ if doanimation == True:
     
 # YOUR TURN:
 # Is the radar animation OK? Do the data look correct and in the right order?
-# If yes, then comment out the "sys.exit()" command below to continue this tutorial.
+# If yes, then comment out the "print(...)" and "sys.exit()" command below to continue this tutorial.
 # Set the above doanimation = False to avoid the above animation.
-
+print("To continue, open the file and go to line number: ", sys._getframe().f_lineno)
 sys.exit()
 
 # Compute motion field
@@ -200,7 +196,7 @@ if doanimation == True:
 # If yes, then comment out the "sys.exit()" command below to continue this tutorial.
 # Set the above doanimation = False to avoid the above animation.
 
-sys.exit()
+#sys.exit()
 
 # Perform the advection of the radar field
 print('Computing extrapolation...')
