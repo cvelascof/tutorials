@@ -92,19 +92,20 @@ if data_source == "fmi":
     fn_pattern      = "%Y%m%d%H%M_fmi.radar.composite.lowest_FIN_SUOMI1"
     path_fmt        = "fmi/%Y%m%d"
     fn_ext          = "pgm.gz"
-    time_step_min   = 5 # timestep between two radar images
-    data_units      = 'dBZ'
+    data_units      = "dBZ"
     importer        = importers.read_pgm
     importer_kwargs = {"gzipped":True}
-
-if data_source == "mch":
+    grid_res_km     = 1.0
+    time_step_min   = 5.0
+elif data_source == "mch":
     fn_pattern      = "AQC%y%j%H%M?_00005.801"
     path_fmt        = "mch/%Y%m%d"
     fn_ext          = "gif"
-    time_step_min   = 5
-    data_units      = 'mmhr'
+    data_units      = "mmhr"
     importer        = importers.read_aqc
     importer_kwargs = {}
+    grid_res_km     = 1.0
+    time_step_min   = 5.0
     
 startdate  = datetime.datetime.strptime(startdate_str, "%Y%m%d%H%M")
 
@@ -134,7 +135,7 @@ dBR[~np.isfinite(dBR)] = dBRmin
 
 ## visualize the input radar fields
 doanimation = True
-nloops = 5 # how many times to loop
+nloops = 2 # how many times to loop
 
 loop = 0
 while loop < nloops:
@@ -153,6 +154,7 @@ if doanimation == True:
 # YOUR TURN:
 # Is the radar animation OK? Do the data look correct and in the right order?
 # If yes, then delete the command below to continue this tutorial.
+# Set the above doanimation = False to avoid the animation.
 
 sys.exit()
 
@@ -164,7 +166,7 @@ UV = oflow_method(dBR, **oflow_kwargs)
 
 ## plot the motion field
 doanimation = True
-nloops = 5
+nloops = 2
 
 loop = 0
 while loop < nloops:
@@ -192,6 +194,7 @@ if doanimation == True:
 # parameters? Check the quality of your motion field: do the precipitation patterns 
 # move along the estimated motion field?
 # If yes, then comment out the command below to continue this tutorial.
+# Set the above doanimation = False to avoid the animation.
 
 sys.exit()
 

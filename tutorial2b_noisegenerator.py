@@ -1,4 +1,6 @@
-"""Tutorial 2a: Cascade decomposition and generation of stochastic noise
+#!/bin/env python
+
+"""Tutorial 2b: Generation of stochastic noise
 
 This tutorial demonstrates the stochastic noise generators.
 """
@@ -33,34 +35,43 @@ from visualization.precipfields import plot_precip_field
 # Set parameters for this tutorial
 
 ## input data (copy/paste values from table above)
-startdate_str = "201609281500"
-data_source   = "fmi"
+startdate_str = "201701311000"
+data_source   = "mch"
 
 ## data paths
 path_inputs  = ""
 path_outputs = ""
 
+## parameters
 R_threshold = 0.1 # [mmhr]
+perturbation_method = "nonparametric" # nonparametric, nested
+num_realizations = 7
 
 ## data specifications
 if data_source == "fmi":
     fn_pattern      = "%Y%m%d%H%M_fmi.radar.composite.lowest_FIN_SUOMI1"
+    path_fmt        = "fmi/%Y%m%d"
     fn_ext          = "pgm.gz"
-    time_step_min   = 5 # timestep between two radar images
     data_units      = "dBZ"
     importer        = importers.read_pgm
     importer_kwargs = {"gzipped":True}
+    grid_res_km     = 1.0
+    time_step_min   = 5.0
 elif data_source == "mch":
     fn_pattern      = "AQC%y%j%H%M?_00005.801"
+    path_fmt        = "mch/%Y%m%d"
     fn_ext          = "gif"
-    time_step_min   = 5
     data_units      = "mmhr"
     importer        = importers.read_aqc
     importer_kwargs = {}
+    grid_res_km     = 1.0
+    time_step_min   = 5.0
 
 startdate = datetime.datetime.strptime(startdate_str, "%Y%m%d%H%M")
 
-fn = archive.find_by_date(startdate, path_inputs, "", fn_pattern, fn_ext, time_step_min)[0]
+fn = archive.find_by_date(startdate, path_inputs, path_fmt, fn_pattern, fn_ext, time_step_min)[0]
+if fn is None:
+    raise ValueError("Input data not found in %s" % path_inputs)
 R = importer(fn, **importer_kwargs)[0]
 
 ## make sure we work with a square domain
@@ -73,6 +84,7 @@ if data_units is "dBZ":
 # plot the input field
 fig = plt.figure()
 plot_precip_field(R, units="mmhr", title="Input field")
+plt.show()
 
 # convert precipitation intensity (mm/hr) to dBR
 dBR, dBRmin = conversion.mmhr2dBR(R, R_threshold)
@@ -84,16 +96,23 @@ dBR[dBR < dBRmin] = dBRmin
 # "nonparametric" method)
 # this produces a noise field having spatial correlation structure similar to 
 # the input field
-F = precip_generators.initialize_nonparam_2d_fft_filter(dBR)
+init_noise, generate_noise = precip_generators.get_method(perturbation_method)
+F = init_noise(dBR)
 
 # plot four realizations of the stochastic noise
-for i in xrange(4):
-    N = precip_generators.generate_noise_2d_fft_filter(F)
-
-    plt.figure()
-    plt.imshow(N, cmap=cm.jet)
-    plt.xticks([])
-    plt.yticks([])
-    plt.title("Noise field %d" % (i+1))
+nrows = int(np.ceil((1+num_realizations)/4.))
+plt.subplot(nrows,4,1)
+for k in xrange(num_realizations+1):
+    if k==0:
+        plt.subplot(nrows,4,k+1)
+        plot_precip_field(R, units="mmhr", title="Rainfall field", colorbar=False)
+    else:
+        N = generate_noise(F)
+        
+        plt.subplot(nrows,4,k+1)
+        plt.imshow(N, cmap=cm.jet)
+        plt.xticks([])
+        plt.yticks([])
+        plt.title("Noise field %d" % (k+1))
 
 plt.show()

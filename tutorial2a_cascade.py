@@ -1,4 +1,6 @@
-"""Tutorial 2a: Cascade decomposition and generation of stochastic noise
+#!/bin/env python
+
+"""Tutorial 2a: Cascade decomposition
 
 This tutorial demonstrates the cascade decomposition.
 """
@@ -34,38 +36,44 @@ from visualization.precipfields  import plot_precip_field
 # Set parameters for this tutorial
 
 ## input data (copy/paste values from table above)
-startdate_str = "201609281500"
-data_source   = "fmi"
+startdate_str = "201701311000"
+data_source   = "mch"
 
 ## data paths
-path_inputs     = ""
-path_outputs    = ""
+path_inputs = ""
+path_outputs = ""
 
+# parameters
 num_cascade_levels = 6
 R_threshold = 0.1 # [mmhr]
-gridres = 1.0
 
 ## data specifications
 if data_source == "fmi":
     fn_pattern      = "%Y%m%d%H%M_fmi.radar.composite.lowest_FIN_SUOMI1"
+    path_fmt        = "fmi/%Y%m%d"
     fn_ext          = "pgm.gz"
-    time_step_min   = 5 # timestep between two radar images
     data_units      = "dBZ"
     importer        = importers.read_pgm
     importer_kwargs = {"gzipped":True}
+    grid_res_km     = 1.0
+    time_step_min   = 5.0
 elif data_source == "mch":
     fn_pattern      = "AQC%y%j%H%M?_00005.801"
+    path_fmt        = "mch/%Y%m%d"
     fn_ext          = "gif"
-    time_step_min   = 5
     data_units      = "mmhr"
     importer        = importers.read_aqc
     importer_kwargs = {}
+    grid_res_km     = 1.0
+    time_step_min   = 5.0
 
 # read the data
 startdate = datetime.datetime.strptime(startdate_str, "%Y%m%d%H%M")
 
 ## find the input file from the data archive
-fn = archive.find_by_date(startdate, path_inputs, "", fn_pattern, fn_ext, time_step_min)[0]
+fn = archive.find_by_date(startdate, path_inputs, path_fmt, fn_pattern, fn_ext, time_step_min)[0]
+if fn is None:
+    raise ValueError("Input data not found in %s" % path_inputs)
 R = importer(fn, **importer_kwargs)[0]
 
 ## make sure we work with a square domain
@@ -81,11 +89,11 @@ if data_units is "dBZ":
 ## plot the input field
 fig = plt.figure()
 plot_precip_field(R, units="mmhr", title="Input field")
+plt.show()
 
 ## convert precipitation intensity (mm/hr) to dBR for the cascade decomposition
 dBR, dBRmin = conversion.mmhr2dBR(R, R_threshold)
 dBR[~np.isfinite(R)] = dBRmin
-dBR[dBR < dBRmin] = dBRmin
 
 ## plot the Fourier transform of the input field
 F = abs(np.fft.fftshift(np.fft.fft2(dBR)))
@@ -97,10 +105,11 @@ cb = fig.colorbar(im)
 plt.xlabel("Wavenumber $k_x$")
 plt.ylabel("Wavenumber $k_y$")
 plt.title("Log-power spectrum of dBR")
+plt.show()
 
 ## construct the bandpass filter
-filter = filter_gaussian(dBR.shape[0], num_cascade_levels, gauss_scale=0.15, 
-                         gauss_scale_0=0.2)
+filter = filter_gaussian(dBR.shape[0], num_cascade_levels, gauss_scale=0.5, 
+                         gauss_scale_0=0.5)
 
 ## plot the bandpass filter weights
 fig = plt.figure()
@@ -120,21 +129,30 @@ ax.set_xticklabels(["%.2f" % cf for cf in filter["central_freqs"]])
 ax.set_xlabel("Radial wavenumber $|\mathbf{k}|$")
 ax.set_ylabel("Normalized weight")
 ax.set_title("Bandpass filter weights")
+plt.show()
 
 ## compute the cascade decomposition
 decomp = decomposition_fft(dBR, filter)
 
 ## plot the normalized cascade levels (mean zero and standard deviation one)
 mu,sigma = decomp["means"],decomp["stds"]
-for k in xrange(num_cascade_levels):
-    dBR_k = decomp["cascade_levels"][k, :, :]
-    dBR_k = (dBR_k - mu[k]) / sigma[k]
-    fig = plt.figure()
-    im = plt.imshow(dBR_k, cmap=cm.jet, vmin=-6, vmax=6)
-    cb = fig.colorbar(im)
-    cb.set_label("Rainfall rate (dBR)")
-    plt.xticks([])
-    plt.yticks([])
-    plt.title("Normalized cascade level %d" % (k+1))
-
+nrows = int(np.ceil((1+num_cascade_levels)/4.))
+plt.subplot(nrows,4,1)
+for k in xrange(num_cascade_levels+1):
+    if k==0:
+        plt.subplot(nrows,4,k+1)
+        plot_precip_field(R, units="mmhr", title="Rainfall field", colorbar=False)
+    else:
+        dBR_k = decomp["cascade_levels"][k-1, :, :]
+        dBR_k = (dBR_k - mu[k-1]) / sigma[k-1]
+        plt.subplot(nrows,4,k+1)
+        im = plt.imshow(dBR_k, cmap=cm.jet, vmin=-6, vmax=6)
+        # cb = plt.colorbar(im)
+        cb.set_label("Rainfall rate (dBR)")
+        plt.xticks([])
+        plt.yticks([])
+        if filter["central_freqs"][k-1]==0:
+            plt.title("Normalized cascade level %d (%i km)" % (k, L*grid_res_km))
+        else:
+            plt.title("Normalized cascade level %d (%i km)" % (k, L*1./filter["central_freqs"][k-1]*grid_res_km))
 plt.show()

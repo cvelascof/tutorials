@@ -1,3 +1,5 @@
+#!/bin/env python
+
 """Tutorial 3: Stochastic ensemble precipitation nowcasting
 
 This tutorial brings all the material from the previous tutorials together in
@@ -41,15 +43,15 @@ startdate_str = "201701311000"
 data_source   = "mch"
 
 ## data paths
-path_inputs     = ""
-path_outputs    = ""
+path_inputs  = ""
+path_outputs = ""
 
 ## methods
 oflow_method             = "lucaskanade"
 extrap_method            = "semilagrangian"
 bandpass_filter_method   = "gaussian"
 decomp_method            = "fft"
-noise_method             = "nonparametric"
+noise_method             = "nonparametric" # nonparametric or nested
 
 ## forecast parameters
 n_lead_times        = 12
@@ -70,7 +72,7 @@ if data_source == "fmi":
     data_units      = "dBZ"
     importer        = importers.read_pgm
     importer_kwargs = {"gzipped":True}
-    grid_res_km      = 1.0
+    grid_res_km     = 1.0
     time_step_min   = 5.0
 elif data_source == "mch":
     fn_pattern      = "AQC%y%j%H%M?_00005.801"
@@ -79,7 +81,7 @@ elif data_source == "mch":
     data_units      = "mmhr"
     importer        = importers.read_aqc
     importer_kwargs = {}
-    grid_res_km       = 1.0
+    grid_res_km      = 1.0
     time_step_min   = 5.0
 
 startdate = datetime.datetime.strptime(startdate_str, "%Y%m%d%H%M")
@@ -108,18 +110,19 @@ dBR[~np.isfinite(R)] = dBRmin
 oflow_method = optflow.get_method(oflow_method)
 UV = oflow_method(dBR)
 
+# Generate the nowcast
 dBR_forecast = steps(dBR, UV, n_lead_times, n_ens_members, 
                     n_cascade_levels, R_threshold, extrap_method, decomp_method, 
                     bandpass_filter_method, noise_method, grid_res_km, time_step_min, ar_order, 
                     None, None, False, False, prob_matching)
 
-                     
+## convert to mmhr                    
 R_forecast = conversion.dBR2mmhr(dBR_forecast, R_threshold)
 
-## visualize the forecast
+# visualize the forecast
 doanimation     = True
 savefig         = True
-nloops = 2
+nloops = 1
 
 loop = 0
 while loop < nloops:
@@ -149,9 +152,9 @@ while loop < nloops:
                         print('%s saved.' % figname)
                 plt.pause(.5)
         if doanimation:
-            plt.pause(1)
+            plt.pause(.5)
     if doanimation:
-        plt.pause(2)
+        plt.pause(1)
     loop += 1
 plt.close()
     
