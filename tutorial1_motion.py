@@ -47,9 +47,8 @@ startdate_str   = "201701311000"
 data_source     = "mch"
 
 ## data paths
-path_base       = "" # Please complete according to your path
-path_inputs     = path_base + "/steps-data"
-path_outputs    = path_base + "/steps-out"
+path_inputs     = ""
+path_outputs    = ""
 
 ## methods
 oflow_method    = "lucaskanade"
