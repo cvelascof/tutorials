@@ -1,8 +1,10 @@
 #!/bin/env python
 
-"""Tutorial 2b: Generation of stochastic noise
+"""Tutorial 3: Generation of stochastic noise
 
 This tutorial demonstrates the stochastic noise generators.
+
+More info: https://pysteps.github.io/
 """
 
 import datetime
@@ -11,8 +13,7 @@ import matplotlib.pylab as plt
 import numpy as np
 import sys
 
-sys.path.append("../") # add root pySTEPS dir to system path
-
+sys.path.append("../") 
 from datatools import conversion, dimension
 from iotools import archive, importers
 from perturbation import precip_generators
@@ -38,9 +39,12 @@ from visualization.precipfields import plot_precip_field
 startdate_str = "201701311000"
 data_source   = "mch"
 
-## data paths
-path_inputs  = ""
-path_outputs = ""
+## data paths (specify the relevant paths*)  
+path_inputs  = ""   # the path to the input files**
+path_outputs = ""   # the path where to save outputs
+# (*) do not include the backslash / at the end of the path
+# (**) this is the folder where you unzipped the archive.zip file that you have
+# downloaded (sources are available on https://pysteps.github.io/)
 
 ## parameters
 R_threshold = 0.1 # [mmhr]

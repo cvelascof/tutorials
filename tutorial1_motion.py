@@ -4,6 +4,8 @@
 
 The tutorial guides you into the basic notions and techniques for extrapolation 
 nowcasting. 
+
+More info: https://pysteps.github.io/
 """
 
 from __future__ import division
@@ -16,8 +18,7 @@ import numpy as np
 import matplotlib.pylab as plt
 import pickle
 
-sys.path.append('../') # add root pySTEPS dir to system path
-
+sys.path.append('../')
 from iotools   import archive, importers, utils
 from motion    import optflow, advection
 from datatools import conversion, dimension
@@ -43,12 +44,15 @@ from verification.detcatscores   import scores_det_cat_fcst
 # Set parameters for this tutorial
 
 ## input data (copy/paste values from table above)
-startdate_str   = "201701311000"
-data_source     = "mch"
+startdate_str = "201701311000"
+data_source   = "mch"
 
-## data paths
-path_inputs     = ""
-path_outputs    = ""
+## data paths (specify the relevant paths*)  
+path_inputs  = ""   # the path to the input files**
+path_outputs = ""   # the path where to save outputs
+# (*) do not include the backslash / at the end of the path
+# (**) this is the folder where you unzipped the archive.zip file that you have
+# downloaded (sources are available on https://pysteps.github.io/)
 
 ## methods
 oflow_method    = "lucaskanade"
@@ -153,8 +157,8 @@ if doanimation == True:
     
 # YOUR TURN:
 # Is the radar animation OK? Do the data look correct and in the right order?
-# If yes, then delete the command below to continue this tutorial.
-# Set the above doanimation = False to avoid the animation.
+# If yes, then comment out the "sys.exit()" command below to continue this tutorial.
+# Set the above doanimation = False to avoid the above animation.
 
 sys.exit()
 
@@ -193,8 +197,8 @@ if doanimation == True:
 # changes in the estimation of the motion field. Which are the most sensitive 
 # parameters? Check the quality of your motion field: do the precipitation patterns 
 # move along the estimated motion field?
-# If yes, then comment out the command below to continue this tutorial.
-# Set the above doanimation = False to avoid the animation.
+# If yes, then comment out the "sys.exit()" command below to continue this tutorial.
+# Set the above doanimation = False to avoid the above animation.
 
 sys.exit()
 
@@ -248,6 +252,7 @@ if doanimation == True:
     plt.close()
 
 # Forecast verification
+print('Forecast verification...')
 
 ## find the verifying observations
 input_files_verif = archive.find_by_date(startdate + datetime.timedelta(minutes=n_lead_times*time_step_min), 

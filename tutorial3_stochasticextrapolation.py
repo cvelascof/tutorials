@@ -1,9 +1,11 @@
 #!/bin/env python
 
-"""Tutorial 3: Stochastic ensemble precipitation nowcasting
+"""Tutorial 4: Stochastic ensemble precipitation nowcasting
 
 This tutorial brings all the material from the previous tutorials together in
 order to generate a stochastic ensemble of precipitation nowcasts.
+
+More info: https://pysteps.github.io/
 """
 
 import datetime
@@ -13,8 +15,7 @@ import sys
 import os
 import pickle
 
-sys.path.append("../") # add root pySTEPS dir to system path
-
+sys.path.append("../")
 from datatools import conversion, dimension
 from iotools import archive, importers, utils
 from motion import optflow
@@ -42,14 +43,17 @@ from verification.probscores import CRPS
 startdate_str = "201701311000"
 data_source   = "mch"
 
-## data paths
-path_inputs  = ""
-path_outputs = ""
+## data paths (specify the relevant paths*)  
+path_inputs  = ""   # the path to the input files**
+path_outputs = ""   # the path where to save outputs
+# (*) do not include the backslash / at the end of the path
+# (**) this is the folder where you unzipped the archive.zip file that you have
+# downloaded (sources are available on https://pysteps.github.io/)
 
 ## methods
 oflow_method             = "lucaskanade"
 extrap_method            = "semilagrangian"
-bandpass_filter_method   = "gaussian"
+bandpass_filter_method   = "gaussian" # gaussian or uniform
 decomp_method            = "fft"
 noise_method             = "nonparametric" # nonparametric or nested
 
@@ -120,8 +124,8 @@ dBR_forecast = steps(dBR, UV, n_lead_times, n_ens_members,
 R_forecast = conversion.dBR2mmhr(dBR_forecast, R_threshold)
 
 # visualize the forecast
-doanimation     = True
-savefig         = True
+doanimation     = False
+savefig         = False
 nloops = 1
 
 loop = 0
