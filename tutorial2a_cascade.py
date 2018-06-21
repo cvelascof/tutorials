@@ -61,8 +61,10 @@ elif data_source == "mch":
     importer        = importers.read_aqc
     importer_kwargs = {}
 
+# read the data
 startdate = datetime.datetime.strptime(startdate_str, "%Y%m%d%H%M")
 
+## find the input file from the data archive
 fn = archive.find_by_date(startdate, path_inputs, "", fn_pattern, fn_ext, time_step_min)[0]
 R = importer(fn, **importer_kwargs)[0]
 
@@ -73,16 +75,19 @@ R = dimension.square_domain(R, "crop")
 if data_units is "dBZ":
     R = conversion.dBZ2mmhr(R, R_threshold)
 
-# plot the input field
+# Plot the input field, compute cascade decomposition and plot it and the weights 
+# used for the decomposition
+
+## plot the input field
 fig = plt.figure()
 plot_precip_field(R, units="mmhr", title="Input field")
 
-# convert precipitation intensity (mm/hr) to dBR for the cascade decomposition
+## convert precipitation intensity (mm/hr) to dBR for the cascade decomposition
 dBR, dBRmin = conversion.mmhr2dBR(R, R_threshold)
 dBR[~np.isfinite(R)] = dBRmin
 dBR[dBR < dBRmin] = dBRmin
 
-# plot the Fourier transform of the input field
+## plot the Fourier transform of the input field
 F = abs(np.fft.fftshift(np.fft.fft2(dBR)))
 fig = plt.figure()
 L = F.shape[0]
@@ -93,11 +98,11 @@ plt.xlabel("Wavenumber $k_x$")
 plt.ylabel("Wavenumber $k_y$")
 plt.title("Log-power spectrum of dBR")
 
-# construct the bandpass filter
+## construct the bandpass filter
 filter = filter_gaussian(dBR.shape[0], num_cascade_levels, gauss_scale=0.15, 
                          gauss_scale_0=0.2)
 
-# plot the bandpass filter weights
+## plot the bandpass filter weights
 fig = plt.figure()
 ax = fig.gca()
 
@@ -116,10 +121,10 @@ ax.set_xlabel("Radial wavenumber $|\mathbf{k}|$")
 ax.set_ylabel("Normalized weight")
 ax.set_title("Bandpass filter weights")
 
-# compute the cascade decomposition
+## compute the cascade decomposition
 decomp = decomposition_fft(dBR, filter)
 
-# plot the normalized cascade levels (mean zero and standard deviation one)
+## plot the normalized cascade levels (mean zero and standard deviation one)
 mu,sigma = decomp["means"],decomp["stds"]
 for k in xrange(num_cascade_levels):
     dBR_k = decomp["cascade_levels"][k, :, :]
