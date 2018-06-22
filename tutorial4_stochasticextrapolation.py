@@ -8,6 +8,9 @@ order to generate a stochastic ensemble of precipitation nowcasts.
 More info: https://pysteps.github.io/
 """
 
+from __future__ import division
+from __future__ import print_function
+
 import datetime
 import matplotlib.pylab as plt
 import numpy as np
@@ -43,12 +46,8 @@ from verification.probscores import CRPS
 startdate_str = "201701311000"
 data_source   = "mch"
 
-## data paths (specify the relevant paths*)  
-path_inputs  = ""   # the path to the input files**
-path_outputs = ""   # the path where to save outputs
-# (*) do not include the backslash / at the end of the path
-# (**) this is the folder where you unzipped the archive.zip file that you have
-# downloaded (sources are available on https://pysteps.github.io/)
+## Read-in data and output paths (to be set beforehand in file data_paths.py)
+from data_paths import path_inputs, path_outputs
 
 ## methods
 oflow_method             = "lucaskanade"
@@ -215,3 +214,6 @@ plt.show()
 # parameters and input files and you will be able to compare their skills in the
 # verification plot. To start with a new clean plot, delete the tutorial3_fig_verif.dat
 # file in your output folder.
+
+print("\n*****", os.path.basename(__file__), "run successfully! *****")
+print("\n***** To continue, open the file at line number", sys._getframe().f_lineno-5, 'and read the instructions. *****')

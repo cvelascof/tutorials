@@ -47,7 +47,7 @@ from verification.detcatscores   import scores_det_cat_fcst
 startdate_str = "201701311000"
 data_source   = "mch"
 
-## Read-in data paths
+## Read-in data and output paths (to be set beforehand in file data_paths.py)
 from data_paths import path_inputs, path_outputs
 
 ## methods
@@ -155,7 +155,7 @@ if doanimation == True:
 # Is the radar animation OK? Do the data look correct and in the right order?
 # If yes, then comment out the "print(...)" and "sys.exit()" command below to continue this tutorial.
 # Set the above doanimation = False to avoid the above animation.
-print("To continue, open the file and go to line number: ", sys._getframe().f_lineno)
+print("\n***** To continue, open the file at line number", sys._getframe().f_lineno-3, 'and read the instructions. *****')
 sys.exit()
 
 # Compute motion field
@@ -193,10 +193,10 @@ if doanimation == True:
 # changes in the estimation of the motion field. Which are the most sensitive 
 # parameters? Check the quality of your motion field: do the precipitation patterns 
 # move along the estimated motion field?
-# If yes, then comment out the "sys.exit()" command below to continue this tutorial.
+# If yes, then comment out the "print(...)" and "sys.exit()" command below to continue this tutorial.
 # Set the above doanimation = False to avoid the above animation.
-
-#sys.exit()
+print("\n***** To continue, open the file at line number", sys._getframe().f_lineno-6, 'and read the instructions. *****')
+sys.exit()
 
 # Perform the advection of the radar field
 print('Computing extrapolation...')
@@ -301,3 +301,5 @@ plt.show()
 # parameters and input files and you will be able to compare their skills in the
 # verification plot. To start with a new clean plot, delete the tutorial1_fig_verif.dat
 # file in your output folder.
+print("\n*****", os.path.basename(__file__), "run successfully! *****")
+print("\n***** To continue, open the file at line number", sys._getframe().f_lineno-5, 'and read the instructions. *****')

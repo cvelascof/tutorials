@@ -7,11 +7,15 @@ This tutorial demonstrates the stochastic noise generators.
 More info: https://pysteps.github.io/
 """
 
+from __future__ import division
+from __future__ import print_function
+
 import datetime
 from matplotlib import cm
 import matplotlib.pylab as plt
 import numpy as np
 import sys
+import os
 
 sys.path.append("../") 
 from datatools import conversion, dimension
@@ -39,12 +43,8 @@ from visualization.precipfields import plot_precip_field
 startdate_str = "201701311000"
 data_source   = "mch"
 
-## data paths (specify the relevant paths*)  
-path_inputs  = ""   # the path to the input files**
-path_outputs = ""   # the path where to save outputs
-# (*) do not include the backslash / at the end of the path
-# (**) this is the folder where you unzipped the archive.zip file that you have
-# downloaded (sources are available on https://pysteps.github.io/)
+## Read-in data and output paths (to be set beforehand in file data_paths.py)
+from data_paths import path_inputs, path_outputs
 
 ## parameters
 R_threshold = 0.1 # [mmhr]
@@ -120,3 +120,5 @@ for k in xrange(num_realizations+1):
         plt.title("Noise field %d" % (k+1))
 
 plt.show()
+
+print("\n*****", os.path.basename(__file__), "run successfully! *****")

@@ -7,11 +7,15 @@ This tutorial demonstrates the cascade decomposition.
 More info: https://pysteps.github.io/
 """
 
+from __future__ import division
+from __future__ import print_function
+
 import datetime
 from matplotlib import cm, ticker
 import matplotlib.pylab as plt
 import numpy as np
 import sys
+import os
 
 sys.path.append("../")
 from datatools import conversion, dimension
@@ -40,12 +44,8 @@ from visualization.precipfields  import plot_precip_field
 startdate_str = "201701311000"
 data_source   = "mch"
 
-## data paths (specify the relevant paths*)  
-path_inputs  = ""   # the path to the input files**
-path_outputs = ""   # the path where to save outputs
-# (*) do not include the backslash / at the end of the path
-# (**) this is the folder where you unzipped the archive.zip file that you have
-# downloaded (sources are available on https://pysteps.github.io/)
+## Read-in data and output paths (to be set beforehand in file data_paths.py)
+from data_paths import path_inputs, path_outputs
 
 # parameters
 num_cascade_levels = 6
@@ -160,3 +160,5 @@ for k in xrange(num_cascade_levels+1):
         else:
             plt.title("Normalized cascade level %d (%i km)" % (k, L*1./filter["central_freqs"][k-1]*grid_res_km))
 plt.show()
+
+print("\n*****", os.path.basename(__file__), "run successfully! *****")
