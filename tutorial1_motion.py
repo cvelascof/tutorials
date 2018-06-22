@@ -77,11 +77,11 @@ oflow_kwargs    = {
                 }
 
 ## visualization parameters
-colorscale      = 'MeteoSwiss' # MeteoSwiss or STEPS-BE
-motion_plot     = 'streamplot' # streamplot or quiver
+colorscale      = "MeteoSwiss" # MeteoSwiss or STEPS-BE
+motion_plot     = "streamplot" # streamplot or quiver
 
 ## verification parameters
-skill_score     = 'CSI'
+skill_score     = "CSI"
 verif_thr       = 1 # [mmhr]
  
 # Read-in the data
@@ -116,18 +116,18 @@ if all(fpath is None for fpath in input_files[0]):
 
 ## read radar field files
 R, _, _ = utils.read_timeseries(input_files, importer, **importer_kwargs)
-print("Size of data array (n_times, n_rows, n_cols):", R.shape)
+print("The data array has size [nleadtimes,nrows,ncols] =", R.shape)
 orig_field_dim = R.shape
 
 # Prepare input files
-print('Prepare the data...')
+print("Prepare the data...")
 
 ## convert units
-if data_units is 'dBZ':
+if data_units is "dBZ":
     R = conversion.dBZ2mmhr(R, R_threshold)
 
 ## make sure we work with a square domain
-R = dimension.square_domain(R, 'crop')
+R = dimension.square_domain(R, "crop")
 
 ## convert linear rainrates to logarithimc dBR units
 dBR, dBRmin = conversion.mmhr2dBR(R, R_threshold)
@@ -142,7 +142,7 @@ while loop < nloops:
     for i in xrange(R.shape[0]):
         plt.clf()
         if doanimation:
-            plot_precip_field(R[i,:,:], None, units='mmhr', colorscale=colorscale, title=input_files[1][i].strftime('%Y-%m-%d %H:%M'), colorbar=True)
+            plot_precip_field(R[i,:,:], None, units="mmhr", colorscale=colorscale, title=input_files[1][i].strftime("%Y-%m-%d %H:%M"), colorbar=True)
             plt.pause(.5)
     if doanimation:
         plt.pause(1)
@@ -159,7 +159,7 @@ print("\n***** To continue, open the file at line number", sys._getframe().f_lin
 sys.exit()
 
 # Compute motion field
-print('Computing motion vectors...')
+print("Computing motion vectors...")
 
 oflow_method = optflow.get_method(oflow_method) # This provides a callable function "oflow_method" for any type of optical flow function used.
 UV = oflow_method(dBR, **oflow_kwargs) 
@@ -174,10 +174,10 @@ while loop < nloops:
     for i in xrange(R.shape[0]):
         plt.clf()
         if doanimation:
-            plot_precip_field(R[i,:,:], None, units='mmhr', colorscale=colorscale, title='Motion field', colorbar=True)
-            if motion_plot=='quiver':
+            plot_precip_field(R[i,:,:], None, units="mmhr", colorscale=colorscale, title="Motion field", colorbar=True)
+            if motion_plot == "quiver":
                 plot_motion_field_quiver(UV, None, 20)
-            if motion_plot=='streamplot':    
+            if motion_plot == "streamplot":    
                 plot_motion_field_streamplot(UV, None)        
             plt.pause(.5)
         
@@ -195,7 +195,7 @@ if doanimation == True:
 # move along the estimated motion field?
 # If yes, then comment out the "print(...)" and "sys.exit()" command below to continue this tutorial.
 # Set the above doanimation = False to avoid the above animation.
-print("\n***** To continue, open the file at line number", sys._getframe().f_lineno-6, 'and read the instructions. *****')
+print("\n***** To continue, open the file at line number", sys._getframe().f_lineno-6, "and read the instructions. *****")
 sys.exit()
 
 # Perform the advection of the radar field
@@ -206,7 +206,7 @@ dBR_forecast = adv_method(dBR[-1,:,:], UV, n_lead_times)
 
 ## convert the forecasted dBR to mmhr
 R_forecast = conversion.dBR2mmhr(dBR_forecast, R_threshold)
-print('The forecast array has size [nleadtimes,nrows,ncols] =', R_forecast.shape)
+print("The forecast array has size [nleadtimes,nrows,ncols] =", R_forecast.shape)
 
 ## plot the nowcast...
 doanimation     = True
@@ -221,8 +221,8 @@ while loop < nloops:
         if doanimation:
             if i < R.shape[0]:
                 # Plot last observed rainfields
-                plot_precip_field(R[i,:,:], None, units='mmhr', colorscale=colorscale, 
-                              title=input_files[1][i].strftime('%Y-%m-%d %H:%M'), 
+                plot_precip_field(R[i,:,:], None, units="mmhr", colorscale=colorscale, 
+                              title=input_files[1][i].strftime("%Y-%m-%d %H:%M"), 
                               colorbar=True)
                 if savefig & (loop == 0):
                     figname = "%s/%s_%s_simple_advection_%02d_obs.png" % (path_outputs, startdate_str, data_source, i)
@@ -230,15 +230,15 @@ while loop < nloops:
                     print(figname, 'saved.')
             else:
                 # Plot nowcast
-                plot_precip_field(R_forecast[i - R.shape[0],:,:], None, units='mmhr', 
-                                  title='%s +%02d min' % 
-                                  (input_files[1][-1].strftime('%Y-%m-%d %H:%M'),
+                plot_precip_field(R_forecast[i - R.shape[0],:,:], None, units="mmhr", 
+                                  title="%s +%02d min" % 
+                                  (input_files[1][-1].strftime("%Y-%m-%d %H:%M"),
                                   (1 + i - R.shape[0])*time_step_min),
                                   colorscale=colorscale, colorbar=True)
                 if savefig & (loop == 0):
                     figname = "%s/%s_%s_simple_advection_%02d_nwc.png" % (path_outputs, startdate_str, data_source, i)
                     plt.savefig(figname)
-                    print(figname, 'saved.')
+                    print(figname, "saved.")
             plt.pause(.5)
     if doanimation:
         plt.pause(1)
@@ -265,7 +265,7 @@ if data_units is 'dBZ':
     Robs = conversion.dBZ2mmhr(Robs, R_threshold)
 
 ## and square domain
-Robs_ = dimension.square_domain(Robs, 'crop')
+Robs_ = dimension.square_domain(Robs, "crop")
 
 ## compute verification scores
 scores = np.zeros(n_lead_times)*np.nan
@@ -276,7 +276,7 @@ for i in xrange(n_lead_times):
 ## if already exists, load the figure object to append the new verification results
 filename = "%s/%s" % (path_outputs, "tutorial1_fig_verif")
 if os.path.exists("%s.dat" % filename):
-    ax = pickle.load(open("%s.dat" % filename, 'rb'))
+    ax = pickle.load(open("%s.dat" % filename, "rb"))
     print("Figure object loaded: %s.dat" % filename) 
 else:
     fig, ax = plt.subplots()
@@ -284,13 +284,13 @@ else:
 ## plot the scores
 nplots = len(ax.lines)
 x = (np.arange(n_lead_times) + 1)*time_step_min
-ax.plot(x, scores, color='C%i'%(nplots + 1), label = 'run %02d' % (nplots + 1))
-ax.set_xlabel('Lead-time [min]')
-ax.set_ylabel('%s' % skill_score)
+ax.plot(x, scores, color='C%i'%(nplots + 1), label = "run %02d" % (nplots + 1))
+ax.set_xlabel("Lead-time [min]")
+ax.set_ylabel("%s" % skill_score)
 plt.legend()
 
 ## dump the figure object
-pickle.dump(plt.gca(), open("%s.dat" % filename, 'wb'))
+pickle.dump(plt.gca(), open("%s.dat" % filename, "wb"))
 print("Figure object saved: %s.dat" % filename)
 # remove the pickle object to plot a new figure
 
@@ -302,4 +302,4 @@ plt.show()
 # verification plot. To start with a new clean plot, delete the tutorial1_fig_verif.dat
 # file in your output folder.
 print("\n*****", os.path.basename(__file__), "run successfully! *****")
-print("\n***** To continue, open the file at line number", sys._getframe().f_lineno-5, 'and read the instructions. *****')
+print("\n***** To continue, open the file at line number", sys._getframe().f_lineno-5, "and read the instructions. *****")

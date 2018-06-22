@@ -65,7 +65,7 @@ R_threshold         = 0.1 # [mmhr]
 prob_matching       = True
 
 ## visualization parameters
-colorscale      = 'MeteoSwiss' # MeteoSwiss or STEPS-BE
+colorscale      = "MeteoSwiss" # MeteoSwiss or STEPS-BE
 
 ## data specifications
 if data_source == "fmi":
@@ -84,7 +84,7 @@ elif data_source == "mch":
     data_units      = "mmhr"
     importer        = importers.read_aqc
     importer_kwargs = {}
-    grid_res_km      = 1.0
+    grid_res_km     = 1.0
     time_step_min   = 5.0
 
 startdate = datetime.datetime.strptime(startdate_str, "%Y%m%d%H%M")
@@ -123,8 +123,8 @@ dBR_forecast = steps(dBR, UV, n_lead_times, n_ens_members,
 R_forecast = conversion.dBR2mmhr(dBR_forecast, R_threshold)
 
 # visualize the forecast
-doanimation     = False
-savefig         = False
+doanimation     = True
+savefig         = True
 nloops = 1
 
 loop = 0
@@ -135,24 +135,24 @@ while loop < nloops:
             if doanimation:
                 if i < R.shape[0]:
                     # Plot last observed rainfields
-                    plot_precip_field(R[i,:,:], None, units='mmhr', colorscale=colorscale, 
-                                  title=input_files[1][i].strftime('%Y-%m-%d %H:%M'), 
+                    plot_precip_field(R[i,:,:], None, units="mmhr", colorscale=colorscale, 
+                                  title=input_files[1][i].strftime("%Y-%m-%d %H:%M"), 
                                   colorbar=True)
                     if savefig and loop == 0 and n == 0:
                         figname = "%s/%s_%s_stochastic_extrapolation_%02d_obs.png" % (path_outputs, startdate_str, data_source, i)
                         plt.savefig(figname)
-                        print('%s saved.' % figname)
+                        print("%s saved." % figname)
                 else:
                     # Plot nowcast
-                    plot_precip_field(R_forecast[n, i - R.shape[0], :, :], None, units='mmhr', 
-                                      title='%s +%02d min (member %02d)' % 
-                                      (input_files[1][-1].strftime('%Y-%m-%d %H:%M'),
+                    plot_precip_field(R_forecast[n, i - R.shape[0], :, :], None, units="mmhr", 
+                                      title="%s +%02d min (member %02d)" % 
+                                      (input_files[1][-1].strftime("%Y-%m-%d %H:%M"),
                                       (1 + i - R.shape[0])*time_step_min, n),
                                       colorscale=colorscale, colorbar=True)
                     if savefig and loop == 0:
                         figname = "%s/%s_%s_stochastic_extrapolation_%02d_%02d_nwc.png" % (path_outputs, startdate_str, data_source, i, n)
                         plt.savefig(figname)
-                        print('%s saved.' % figname)
+                        print("%s saved." % figname)
                 plt.pause(.5)
         if doanimation:
             plt.pause(.5)
@@ -178,7 +178,7 @@ if data_units is 'dBZ':
     Robs = conversion.dBZ2mmhr(Robs, R_threshold)
 
 ## and square domain
-Robs = dimension.square_domain(Robs, 'crop')
+Robs = dimension.square_domain(Robs, "crop")
 
 ## compute the average continuous ranked probability score (CRPS)
 scores = np.zeros(n_lead_times)*np.nan
@@ -189,7 +189,7 @@ for i in xrange(n_lead_times):
 ## if already exists, load the figure object to append the new verification results
 filename = "%s/%s" % (path_outputs, "tutorial3_fig_verif")
 if os.path.exists("%s.dat" % filename):
-    ax = pickle.load(open("%s.dat" % filename, 'rb'))
+    ax = pickle.load(open("%s.dat" % filename, "rb"))
     print("Figure object loaded: %s.dat" % filename) 
 else:
     fig, ax = plt.subplots()
@@ -197,13 +197,13 @@ else:
 ## plot the scores
 nplots = len(ax.lines)
 x = (np.arange(n_lead_times) + 1)*time_step_min
-ax.plot(x, scores, color='C%i'%(nplots + 1), label = 'run %02d' % (nplots + 1))
-ax.set_xlabel('Lead-time [min]')
-ax.set_ylabel('CRPS')
+ax.plot(x, scores, color="C%i"%(nplots + 1), label = "run %02d" % (nplots + 1))
+ax.set_xlabel("Lead-time [min]")
+ax.set_ylabel("CRPS")
 plt.legend()
 
 ## dump the figure object
-pickle.dump(plt.gca(), open("%s.dat" % filename, 'wb'))
+pickle.dump(plt.gca(), open("%s.dat" % filename, "wb"))
 print("Figure object saved: %s.dat" % filename)
 # remove the pickle object to plot a new figure
 
@@ -216,4 +216,4 @@ plt.show()
 # file in your output folder.
 
 print("\n*****", os.path.basename(__file__), "run successfully! *****")
-print("\n***** To continue, open the file at line number", sys._getframe().f_lineno-5, 'and read the instructions. *****')
+print("\n***** To continue, open the file at line number", sys._getframe().f_lineno-6, "and read the instructions. *****")
