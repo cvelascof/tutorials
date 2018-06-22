@@ -187,7 +187,7 @@ for i in xrange(n_lead_times):
                      Robs[i,:,:].flatten())
 
 ## if already exists, load the figure object to append the new verification results
-filename = "%s/%s" % (path_outputs, "tutorial3_fig_verif")
+filename = "%s/%s" % (path_outputs, "tutorial4_fig_verif")
 if os.path.exists("%s.dat" % filename):
     ax = pickle.load(open("%s.dat" % filename, "rb"))
     print("Figure object loaded: %s.dat" % filename) 
@@ -212,7 +212,7 @@ plt.show()
 # YOUR TURN:
 # Now you can run the whole code multiple times with different combinations of 
 # parameters and input files and you will be able to compare their skills in the
-# verification plot. To start with a new clean plot, delete the tutorial3_fig_verif.dat
+# verification plot. To start with a new clean plot, delete the tutorial4_fig_verif.dat
 # file in your output folder.
 
 print("\n*****", os.path.basename(__file__), "run successfully! *****")
