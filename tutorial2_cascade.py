@@ -119,7 +119,7 @@ filter = filter_gaussian(dBR.shape[0], num_cascade_levels, gauss_scale=0.5,
 fig = plt.figure()
 ax = fig.gca()
 
-for k in xrange(num_cascade_levels):
+for k in range(num_cascade_levels):
     ax.semilogx(np.linspace(0, L/2, len(filter["weights_1d"][k, :])), 
                 filter["weights_1d"][k, :], "k-", 
                 basex=pow(0.5*L/3, 1.0/(num_cascade_levels-2)))
@@ -142,7 +142,7 @@ decomp = decomposition_fft(dBR, filter)
 mu,sigma = decomp["means"],decomp["stds"]
 nrows = int(np.ceil((1+num_cascade_levels)/4.))
 plt.subplot(nrows,4,1)
-for k in xrange(num_cascade_levels+1):
+for k in range(num_cascade_levels+1):
     if k==0:
         plt.subplot(nrows,4,k+1)
         plot_precip_field(R, units="mmhr", title="Rainfall field", colorbar=False)

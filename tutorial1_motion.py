@@ -139,7 +139,7 @@ nloops = 2 # how many times to loop
 
 loop = 0
 while loop < nloops:
-    for i in xrange(R.shape[0]):
+    for i in range(R.shape[0]):
         plt.clf()
         if doanimation:
             plot_precip_field(R[i,:,:], None, units="mmhr", colorscale=colorscale, title=input_files[1][i].strftime("%Y-%m-%d %H:%M"), colorbar=True)
@@ -171,7 +171,7 @@ nloops = 2
 loop = 0
 while loop < nloops:
     
-    for i in xrange(R.shape[0]):
+    for i in range(R.shape[0]):
         plt.clf()
         if doanimation:
             plot_precip_field(R[i,:,:], None, units="mmhr", colorscale=colorscale, title="Motion field", colorbar=True)
@@ -216,7 +216,7 @@ nloops = 2
 loop = 0
 while loop < nloops:
     
-    for i in xrange(R.shape[0] + n_lead_times):
+    for i in range(R.shape[0] + n_lead_times):
         plt.clf()
         if doanimation:
             if i < R.shape[0]:
@@ -269,7 +269,7 @@ Robs_ = dimension.square_domain(Robs, "crop")
 
 ## compute verification scores
 scores = np.zeros(n_lead_times)*np.nan
-for i in xrange(n_lead_times):
+for i in range(n_lead_times):
     scores[i] = scores_det_cat_fcst(R_forecast[i,:,:], Robs_[i,:,:], verif_thr, 
                                    [skill_score])[0]
 

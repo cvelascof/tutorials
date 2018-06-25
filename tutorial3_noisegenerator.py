@@ -106,7 +106,7 @@ F = init_noise(dBR)
 # plot four realizations of the stochastic noise
 nrows = int(np.ceil((1+num_realizations)/4.))
 plt.subplot(nrows,4,1)
-for k in xrange(num_realizations+1):
+for k in range(num_realizations+1):
     if k==0:
         plt.subplot(nrows,4,k+1)
         plot_precip_field(R, units="mmhr", title="Rainfall field", colorbar=False)

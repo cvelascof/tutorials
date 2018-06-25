@@ -129,8 +129,8 @@ nloops = 1
 
 loop = 0
 while loop < nloops:
-    for n in xrange(n_ens_members):
-        for i in xrange(R.shape[0] + n_lead_times):
+    for n in range(n_ens_members):
+        for i in range(R.shape[0] + n_lead_times):
             plt.clf()
             if doanimation:
                 if i < R.shape[0]:
@@ -182,7 +182,7 @@ Robs = dimension.square_domain(Robs, "crop")
 
 ## compute the average continuous ranked probability score (CRPS)
 scores = np.zeros(n_lead_times)*np.nan
-for i in xrange(n_lead_times):
+for i in range(n_lead_times):
     scores[i] = CRPS(R_forecast[:,i,:,:].reshape((n_ens_members, -1)).transpose(), 
                      Robs[i,:,:].flatten())
 
