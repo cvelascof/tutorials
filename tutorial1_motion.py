@@ -106,6 +106,15 @@ elif data_source == "mch":
     importer_kwargs = {}
     grid_res_km     = 1.0
     time_step_min   = 5.0
+elif data_source == "bom":
+    fn_pattern      = "2_%Y%m%d_%H%M00.prcp-cscn"
+    path_fmt        = "bom/prcp-cscn/2/%Y/%m/%d"
+    fn_ext          = "nc"
+    data_units      = "mmhr"
+    importer        = importers.read_bom_rf3
+    importer_kwargs = {}
+    grid_res_km     = 1.0
+    time_step_min   = 6.0
     
 startdate  = datetime.datetime.strptime(startdate_str, "%Y%m%d%H%M")
 
